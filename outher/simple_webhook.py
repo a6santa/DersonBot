@@ -1,7 +1,10 @@
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
+
 
 app = FastAPI()
 
@@ -19,7 +22,8 @@ async def receive_message(request: Request):
 
     print(f"Mensagem recebida de {from_number}: {body}")
 
-    
+    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
     
     client = Client(account_sid, auth_token)
 
