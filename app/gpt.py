@@ -3,8 +3,9 @@ import time
 
 from openai import OpenAI
 from datetime import datetime
-from services import buscar_servicos
-from db import MessageDatabase
+
+from app.services import buscar_servicos
+from app.db import MessageDatabase
 
 client = OpenAI(api_key=os.environ.get("OPENAI_TOKEN"))
 
