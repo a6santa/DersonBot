@@ -3,7 +3,6 @@ import logging
 from fastapi import FastAPI
 from app.routers import helth_router, webhook_router
 
-
 def init_app():
 
     logging.basicConfig(level=logging.ERROR)

@@ -1,4 +1,4 @@
-from typing import List
+import os
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 from app.broker_twilio import send_simple_text, response
@@ -27,13 +27,12 @@ async def receive_message(request: Request):
     print(f"Mensagem recebida de {from_number}: {body}")
 
     content_ai = make_response(
-        intention="new_msg",
         question=f"{user}: {body}",
-        config={"seller": "Derson BarberShop"},
+        from_number=from_number,
     )
 
     send_simple_text(
-        from_=f"whatsapp:+14155238886",
+        from_=os.environ.get('BOT_NUMBER'),
         body=content_ai,
         to=from_number,
     )
