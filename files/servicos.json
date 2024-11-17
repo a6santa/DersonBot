@@ -1,0 +1,30 @@
+[
+  {
+    "id": 3928151,
+    "servico": "Manicure",
+    "descricao": "Cutilação e esmaltação das unhas das mãos.",
+    "valor": 50,
+    "profissionais_ids": ["900597", "900598", "874790", "854032"]
+  },
+  {
+    "id": 3928150,
+    "servico": "Corte",
+    "descricao": "O corte de cabelo retira as pontas ressecadas do cabelo e ajuda no crescimento dos fios. Com base no conhecimento do visagismo, estudo que avalia a imagem de uma pessoa, é possível determinar os melhores cortes de cabelo para cada tipo de rosto. O objetivo é promover um visual mais homogêneo e confiante.",
+    "valor": 50,
+    "profissionais_ids": ["900597", "900598", "874790", "854032"]
+  },
+  {
+    "id": 4131056,
+    "servico": "Corte Infantil",
+    "descricao": "Corte realizado somente em crianças.",
+    "valor": 35,
+    "profissionais_ids": ["858599", "860856", "900597", "867495", "900598", "876079", "876066", "867358", "876068", "874790", "900599", "854032", "860855"]
+  },
+  {
+    "id": 3928152,
+    "servico": "Design de Sobrancelha",
+    "descricao": "Técnica que busca alinhar os pelos da sobrancelha com a armonização do rosto da cliente, desenhando a curvatura mais adequada.",
+    "valor": 50,
+    "profissionais_ids": ["900597", "900598", "874790", "854032"]
+  }
+]

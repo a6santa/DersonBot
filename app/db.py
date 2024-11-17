@@ -1,4 +1,4 @@
-import time 
+import time
 
 from tinydb import TinyDB, Query
 
@@ -11,7 +11,7 @@ class MessageDatabase:
         self.db = TinyDB(db_path)
         self.table = self.db.table(table)
 
-    def insert(self, value:dict):
+    def insert(self, value: dict):
         """Inseri um registro unico"""
         self.table.insert(value)
 
@@ -37,9 +37,11 @@ class MessageDatabase:
         """Busca mensagens no banco local com base na coluna e valor especificados"""
         user = Query()
         return self.table.search(user.user_id == user_id)
-    
+
     def search_thread(self, user_id):
         """Busca mensagens no banco local com base na coluna e valor especificados"""
         user = Query()
-        
-        return self.table.search((user.user_id == user_id) & (user.expiron_time > time.time()))
+
+        return self.table.search(
+            (user.user_id == user_id) & (user.expiron_time > time.time())
+        )

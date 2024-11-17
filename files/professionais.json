@@ -1,0 +1,58 @@
+[
+    {
+      "id": 900597,
+      "nome": "Daniel Falcao",
+      "apelido": "Daniel",
+      "intervalo_agenda": 30,
+      "especialidade": null,
+      "servicos_ids": ["3928150", "4131056", "3928151", "3928152"]
+    },
+    {
+      "id": 900599,
+      "nome": "Vinicius Domenech",
+      "apelido": "Vinicius",
+      "intervalo_agenda": 30,
+      "especialidade": null,
+      "servicos_ids": ["4131056"]
+    },
+    {
+      "id": 867495,
+      "nome": "Danrlei Avila",
+      "apelido": "Danrlei",
+      "intervalo_agenda": 30,
+      "especialidade": null,
+      "servicos_ids": ["4131056"]
+    },
+    {
+      "id": 858599,
+      "nome": "Oscar",
+      "apelido": "Oscar",
+      "intervalo_agenda": 30,
+      "especialidade": "",
+      "servicos_ids": ["4131056"]
+    },
+    {
+      "id": 900598,
+      "nome": "Felipe Real",
+      "apelido": "Felipe",
+      "intervalo_agenda": 30,
+      "especialidade": "",
+      "servicos_ids": ["4131056", "3928150", "3928151", "3928152"]
+    },
+    {
+      "id": 854032,
+      "nome": "Gabriel Maia",
+      "apelido": "Gabriel",
+      "intervalo_agenda": 30,
+      "especialidade": "",
+      "servicos_ids": ["4131056", "3928150", "3928151", "3928152"]
+    },
+    {
+      "id": 867358,
+      "nome": "Anderson Santana",
+      "apelido": "Dersão",
+      "intervalo_agenda": 40,
+      "especialidade": null,
+      "servicos_ids": ["4131056"]
+    }
+  ]
