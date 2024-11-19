@@ -10,8 +10,7 @@ from app.db import MessageDatabase
 
 # Configuração do logger
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 client = OpenAI(api_key=os.environ.get("OPENAI_TOKEN"))
@@ -22,13 +21,15 @@ class AssistantAI:
 
     functions = {"functions": []}
     registered_functions = {}
-    logger = logging.getLogger('AssistantAI')
+    logger = logging.getLogger("AssistantAI")
 
     def __init__(self, assistant=None, thread_id=None):
         self.client = client
         self.assistant = assistant
         self.thread_id = thread_id
-        self.logger.info(f"AssistantAI iniciado - Assistant ID: {assistant}, Thread ID: {thread_id}")
+        self.logger.info(
+            lambda: f"AssistantAI iniciado - Assistant ID: {assistant}, Thread ID: {thread_id}"
+        )
 
     def create_assistant(self, name, instructions, model="gpt-4o-mini"):
         """Função que cria assistente OpenAI"""
@@ -45,6 +46,16 @@ class AssistantAI:
         db = MessageDatabase(table="assistant")
         db.insert({"assistant_id": self.assistant, "model": model})
 
+    def modify_assistant(self, model, instructions, name):
+        """Função que modifica o assistente"""
+        client.beta.assistants.update(
+            assistant_id=self.assistant,
+            model=model,
+            instructions=instructions, 
+            name = name, 
+            tools=self.functions["functions"]
+        )
+    
     def create_thread(self):
         """Função que cria uma thread"""
         thread = client.beta.threads.create()
@@ -57,7 +68,9 @@ class AssistantAI:
 
     def add_message(self, user_input):
         """Função que adiciona uma mensagem à thread"""
-        self.logger.info(f"Adicionando mensagem à thread {self.thread_id}: {user_input[:50]}...")
+        self.logger.info(
+            lambda: f"Adicionando mensagem à thread {self.thread_id}: {user_input[:50]}..."
+        )
         client.beta.threads.messages.create(
             thread_id=self.thread_id, role="user", content=user_input
         )
@@ -89,13 +102,16 @@ class AssistantAI:
             tool_calls = run.required_action.submit_tool_outputs.tool_calls
             for tool_call in tool_calls:
                 function_name = tool_call.function.name
-                self.logger.info(f"Executando função: {function_name}")
+                self.logger.info(lambda: f"Executando função: {function_name}")
                 function_to_call = self.registered_functions.get(function_name)
                 if function_to_call:
                     function_args = json.loads(tool_call.function.arguments)
-                    self.logger.info(f"Argumentos da função: {function_args}")
+                    self.logger.info(lambda: f"Argumentos da função: {function_args}")
                     function_response = function_to_call(**function_args)
-                    self.logger.info(f"Resposta da função: {function_response[:100]}...")
+                    response_str = str(function_response)[:100]
+                    self.logger.info(
+                        lambda: f"Resposta da função: {response_str}..."
+                    )
                     tool_outputs.append(
                         {"tool_call_id": tool_call.id, "output": function_response}
                     )
@@ -105,27 +121,50 @@ class AssistantAI:
 
     def assistant_api(self, instructions):
         """Função que executa a API do assistente"""
-        self.logger.info(f"Iniciando execução da API com instruções: {instructions[:50]}...")
+        self.logger.info(
+            lambda: f"Iniciando execução da API com instruções: {instructions[:50]}..."
+        )
 
         run_id = self.run_assistant(instructions)
         run = self.retrieve_run(run_id)
-        self.logger.info(f"Run criada - ID: {run_id}, Status inicial: {run.status}")
+        self.logger.info(
+            lambda: f"Run criada - ID: {run_id}, Status inicial: {run.status}"
+        )
 
         while run.status == "requires_action" or "queued":
             time.sleep(1)
-            run = self.retrieve_run(run_id)
-            self.logger.info(f"Status da run: {run.status}")
-            if run.status == "completed":
-                break
-            self.run_require_action(run, run_id)
+            try:
+                run = self.retrieve_run(run_id)
+                self.logger.info(lambda: f"Status da run: {run.status}")
+                if run.status == "completed":
+                    break
+                self.run_require_action(run, run_id)
+            except Exception as e:
+                self.logger.error(lambda: f"Erro ao executar run {run_id}: {str(e)}")
+                self.cancel_run(run_id)
+                raise
 
         outputs = self.get_message()
         tokens = run.usage.total_tokens
-        
-        self.logger.info(f"Execução finalizada - Tokens utilizados: {tokens}")
-        self.logger.debug(f"Output completo: {outputs}")
+
+        self.logger.info(lambda: f"Execução finalizada - Tokens utilizados: {tokens}")
+        self.logger.debug(lambda: f"Output completo: {outputs}")
 
         return outputs, tokens
+
+    def cancel_run(self, run_id):
+        """Função que cancela uma run em execução"""
+        self.logger.info(lambda: f"Cancelando run {run_id}")
+        try:
+            run = self.client.beta.threads.runs.cancel(
+                thread_id=self.thread_id,
+                run_id=run_id
+            )
+            self.logger.info(lambda: f"Run {run_id} cancelada com sucesso")
+            return run
+        except Exception as e:
+            self.logger.error(lambda: f"Erro ao cancelar run {run_id}: {str(e)}")
+            raise
 
     @classmethod
     def add_func(cls, func):
@@ -192,21 +231,36 @@ def get_services() -> str:
     with open("./files/servicos.json", mode="r", encoding="utf-8") as file:
         services = json.load(file)
 
-    return "; ".join(
-        [f"{service['servico']}: R$ {service['valor']},00" for service in services]
-    )
+    return str(services)
 
 
+@AssistantAI.add_func
+def get_professionals() -> str:
+    """
+    Busca a lista de profissionais disponíveis no salão e suas especialidades
+    return: str: Retorna uma string formatada com a lista de profissionais
+    """
+    with open("./files/profissionais.json", mode="r", encoding="utf-8") as file:
+        professionals = json.load(file)
+
+    return str(professionals)
+
+
+@AssistantAI.add_func
 def get_schedule(profissional_id: int, date: str) -> list:
-    """Buscar agenda disponivel para algum agendamento"""
-
-    # date_f = date.strftime('%Y-%m-%d')
+    """
+    Buscar agenda disponivel para algum agendamento
+    profissional_id: integer: ID do profissional
+    date: string: Data no formato YYYY-MM-DD
+    return: list: Retorna uma lista de horários disponíveis
+    """
 
     base = "https://api.avec.beauty/salao/97935/agenda/profissional"
     url = f"{base}/{profissional_id}/tempo-livre?data={date}&force_full_range=40"
     token = os.environ.get("AVECTOKEN")
     headers = {"Authorization": token}
 
+    print(url)
     response = requests.request(method="GET", url=url, headers=headers, timeout=None)
 
     if response.ok:
@@ -223,8 +277,27 @@ def get_schedule(profissional_id: int, date: str) -> list:
                 formatted_time = f"{hours:02}:{mins:02}"
                 formatted_schedules.append((formatted_time))
 
-            return formatted_schedules
+            return str(formatted_schedules)
         else:
-            return []
+            return str([])
     else:
-        return []
+        return str([])
+
+
+@AssistantAI.add_func
+def put_booking(
+    id_servico: int, id_profissional: int, data: str, horario_minutos: int
+) -> str:
+    """
+    Realiza o agendamento:
+    id_servico: integer: ID do serviço
+    id_profissional: integer: ID do profissional
+    data: string: Data no formato YYYY-MM-DD
+    horario_minutos: integer: Horário convertido em minutos desde 00:00
+    return: boolean: Retorna True se agendamento foi realizado com sucesso
+    """
+    logger = logging.getLogger("put_booking")
+    
+    logger.info(f"Dados capturados: {id_servico}, {id_profissional}, {data}, {horario_minutos}")
+
+    return f"Dados capturados: {id_servico}, {id_profissional}, {data}, {horario_minutos}"
