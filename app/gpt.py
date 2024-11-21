@@ -25,13 +25,21 @@ def make_response(question: str, from_number: str) -> str:
             ]
         )
 
-        instructions = (
-            f"O Cliente já falou conosco segue as ultimas conversas: {previus_messages}. Hoje é {current_date} Você deve conhecer as futuras datas dado a data de hoje"
+        firt_instructions = (
+            f""""
+            - O Cliente já falou conosco segue as ultimas conversas: [{previus_messages}].
+            Você deve usar este historico para melhorar a conversa com o cliente e caso o mesmo peguntar coisas que já foi falado,
+            você deve responder com base no historico.
+            - Hoje é {current_date} Você deve conhecer as futuras datas dado a data de hoje
+            """
             if previus_messages
-            else None
+            else f"Hoje é {current_date} Você deve conhecer as futuras datas dado a data de hoje"
         )
     else:
-        instructions = f"Este cliente não tem historico de conversa no bot, trate ele muito bem para cativa-lo. Hoje é {current_date} Você deve conhecer as futuras datas dado a data de hoje"
+        firt_instructions = f"""
+        - Este é um cliente novo, trate ele muito bem para cativa-lo.
+        - Hoje é {current_date} Você deve conhecer as futuras datas dado a data de hoje
+        """
 
     assistant_id = "asst_PhStNrXzL4eOngFNXLmH91vI"
 
@@ -43,8 +51,9 @@ def make_response(question: str, from_number: str) -> str:
         thread_id = return_db[0].get("thread_id")
 
     client = AssistantAI(assistant=assistant_id, thread_id=thread_id)
-
-    print(client.registered_functions)
+    instructions = (
+        f"Hoje é {current_date} Você deve conhecer as futuras datas dado a data de hoje"
+    )
 
     if not client.thread_id:
         client.create_thread()
@@ -55,6 +64,8 @@ def make_response(question: str, from_number: str) -> str:
                 "expiron_time": time.time() + 3 * 60 * 60,
             }
         )
+        instructions = firt_instructions
+
     client.add_message(question)
     output, tokens = client.assistant_api(instructions)
 
@@ -70,6 +81,3 @@ def make_response(question: str, from_number: str) -> str:
     )
 
     return output
-
-
-# https://dersonbot.onrender.com/send/twilio

@@ -28,7 +28,8 @@ class AssistantAI:
         self.assistant = assistant
         self.thread_id = thread_id
         self.logger.info(
-            lambda: f"AssistantAI iniciado - Assistant ID: {assistant}, Thread ID: {thread_id}"
+            "AssistantAI iniciado - Assistant ID: %s, Thread ID: %s",
+            assistant, thread_id
         )
 
     def create_assistant(self, name, instructions, model="gpt-4o-mini"):
@@ -68,9 +69,8 @@ class AssistantAI:
 
     def add_message(self, user_input):
         """Função que adiciona uma mensagem à thread"""
-        self.logger.info(
-            lambda: f"Adicionando mensagem à thread {self.thread_id}: {user_input[:50]}..."
-        )
+        self.logger.info("Adicionando mensagem à thread %s: %s...",
+                        self.thread_id, user_input[:50])
         client.beta.threads.messages.create(
             thread_id=self.thread_id, role="user", content=user_input
         )
@@ -102,16 +102,14 @@ class AssistantAI:
             tool_calls = run.required_action.submit_tool_outputs.tool_calls
             for tool_call in tool_calls:
                 function_name = tool_call.function.name
-                self.logger.info(lambda: f"Executando função: {function_name}")
+                self.logger.info("Executando função: %s", function_name)
                 function_to_call = self.registered_functions.get(function_name)
                 if function_to_call:
                     function_args = json.loads(tool_call.function.arguments)
-                    self.logger.info(lambda: f"Argumentos da função: {function_args}")
+                    self.logger.info("Argumentos da função: %s", function_args)
                     function_response = function_to_call(**function_args)
                     response_str = str(function_response)[:100]
-                    self.logger.info(
-                        lambda: f"Resposta da função: {response_str}..."
-                    )
+                    self.logger.info("Resposta da função: %s...", response_str)
                     tool_outputs.append(
                         {"tool_call_id": tool_call.id, "output": function_response}
                     )
@@ -122,48 +120,48 @@ class AssistantAI:
     def assistant_api(self, instructions):
         """Função que executa a API do assistente"""
         self.logger.info(
-            lambda: f"Iniciando execução da API com instruções: {instructions[:50]}..."
+            "Iniciando execução da API com instruções: %s...",
+            instructions[:50]
         )
 
         run_id = self.run_assistant(instructions)
         run = self.retrieve_run(run_id)
-        self.logger.info(
-            lambda: f"Run criada - ID: {run_id}, Status inicial: {run.status}"
-        )
+        self.logger.info("Run criada - ID: %s, Status inicial: %s",
+                        run_id, run.status)
 
         while run.status == "requires_action" or "queued":
             time.sleep(1)
             try:
                 run = self.retrieve_run(run_id)
-                self.logger.info(lambda: f"Status da run: {run.status}")
+                self.logger.info("Status da run: %s", run.status)
                 if run.status == "completed":
                     break
                 self.run_require_action(run, run_id)
             except Exception as e:
-                self.logger.error(lambda: f"Erro ao executar run {run_id}: {str(e)}")
+                self.logger.error("Erro ao executar run %s: %s", run_id, str(e))
                 self.cancel_run(run_id)
                 raise
 
         outputs = self.get_message()
         tokens = run.usage.total_tokens
 
-        self.logger.info(lambda: f"Execução finalizada - Tokens utilizados: {tokens}")
-        self.logger.debug(lambda: f"Output completo: {outputs}")
+        self.logger.info("Execução finalizada - Tokens utilizados: %s", tokens)
+        self.logger.debug("Output completo: %s", outputs)
 
         return outputs, tokens
 
     def cancel_run(self, run_id):
         """Função que cancela uma run em execução"""
-        self.logger.info(lambda: f"Cancelando run {run_id}")
+        self.logger.info("Cancelando run %s", run_id)
         try:
             run = self.client.beta.threads.runs.cancel(
                 thread_id=self.thread_id,
                 run_id=run_id
             )
-            self.logger.info(lambda: f"Run {run_id} cancelada com sucesso")
+            self.logger.info("Run %s cancelada com sucesso", run_id)
             return run
         except Exception as e:
-            self.logger.error(lambda: f"Erro ao cancelar run {run_id}: {str(e)}")
+            self.logger.error("Erro ao cancelar run %s: %s", run_id, str(e))
             raise
 
     @classmethod
@@ -298,6 +296,7 @@ def put_booking(
     """
     logger = logging.getLogger("put_booking")
     
-    logger.info(f"Dados capturados: {id_servico}, {id_profissional}, {data}, {horario_minutos}")
+    logger.info("Dados capturados: %s, %s, %s, %s", 
+                id_servico, id_profissional, data, horario_minutos)
 
-    return f"Dados capturados: {id_servico}, {id_profissional}, {data}, {horario_minutos}"
+    return str(True)
